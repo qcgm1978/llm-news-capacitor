@@ -1,0 +1,37 @@
+{
+  "name": "llm-news-capacitor",
+  "version": "1.0.0",
+  "description": "LLM公司新闻Capacitor应用",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "capacitor:build:android": "sudo npm run build && sudo npx cap sync android && sudo npx cap open android"
+  },
+  "keywords": [
+    "llm",
+    "news",
+    "capacitor",
+    "android"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/app": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/haptics": "^5.0.0",
+    "@capacitor/keyboard": "^5.0.0",
+    "@capacitor/status-bar": "^5.0.0",
+    "axios": "^1.6.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.0.0"
+  }
+}
