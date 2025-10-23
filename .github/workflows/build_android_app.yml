@@ -44,31 +44,8 @@ jobs:
         run: |
           if [ ! -f "capacitor.config.json" ]; then
             echo "Creating capacitor.config.json..."
-            cat > capacitor.config.json << 'EOL'
-{
-  "appId": "com.llmnews.app",
-  "appName": "LLM News",
-  "webDir": "dist",
-  "bundledWebRuntime": false,
-  "plugins": {
-    "Haptics": {
-      "enabled": true
-    },
-    "StatusBar": {
-      "style": "DARK"
-    }
-  },
-  "ios": {
-    "supportsTablet": true
-  },
-  "android": {
-    "adaptiveIcon": {
-      "foregroundImage": "src/assets/adaptive-icon.png",
-      "backgroundColor": "#ffffff"
-    }
-  }
-}
-EOL
+            # Create the config file using echo commands instead of here-document
+            echo '{"appId":"com.llmnews.app","appName":"LLM News","webDir":"dist","bundledWebRuntime":false,"plugins":{"Haptics":{"enabled":true},"StatusBar":{"style":"DARK"}},"ios":{"supportsTablet":true},"android":{"adaptiveIcon":{"foregroundImage":"src/assets/adaptive-icon.png","backgroundColor":"#ffffff"}}}' > capacitor.config.json
           fi
           echo "Capacitor config exists: $(test -f "capacitor.config.json" && echo "yes" || echo "no")"
           cat capacitor.config.json
