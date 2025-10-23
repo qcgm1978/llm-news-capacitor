@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [ main ]  # 添加web_android分支
+    branches: [ main ]
 
 # 设置部署权限
 permissions:
@@ -19,28 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      # - name: Cache Node.js dependencies
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       ~/.npm
-      #       node_modules
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-node-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'  # 启用npm缓存，比注释的缓存配置更简洁
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Build web app
         run: npm run build
-      - name: Create release directory
-        run: mkdir -p dist/release
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
@@ -50,6 +37,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+        # 注意：v4版本不需要显式提供github_token参数，它会自动使用secrets.GITHUB_TOKEN
