@@ -30,6 +30,10 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# API Configuration
+utils/config.js
+utils/config.local.js
+
 # Android
 android/
 *.iml
