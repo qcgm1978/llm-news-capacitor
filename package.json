@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "capacitor:build:android": "sudo npm run build && sudo npx cap sync android && sudo npx cap open android"
+    "capacitor:build:android-noopen": "npm run build && npx cap sync android",
+    "capacitor:build:android": "npm run build && npx cap sync android && npx cap open android"
   },
   "keywords": [
     "llm",

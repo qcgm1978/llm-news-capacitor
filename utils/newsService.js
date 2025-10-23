@@ -145,6 +145,28 @@ export const showApiKeyDialog = () => {
       width: 90%;
       max-width: 400px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      position: relative;
+    `;
+    
+    // 添加关闭按钮
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '×';
+    closeButton.style.cssText = `
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: #f5f5f5;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
     `;
     
     const title = document.createElement('h3');
@@ -202,10 +224,19 @@ export const showApiKeyDialog = () => {
       font-size: 14px;
     `;
     
+    // 关闭对话框的函数
+    const closeDialog = (result) => {
+      if (document.body.contains(dialogContainer)) {
+        document.body.removeChild(dialogContainer);
+      }
+      resolve(result);
+    };
+    
     // 组装对话框
     inputContainer.appendChild(input);
     buttonsContainer.appendChild(cancelButton);
     buttonsContainer.appendChild(saveButton);
+    dialogContent.appendChild(closeButton); // 添加关闭按钮
     dialogContent.appendChild(title);
     dialogContent.appendChild(description);
     dialogContent.appendChild(link);
@@ -215,18 +246,32 @@ export const showApiKeyDialog = () => {
     
     // 添加事件监听
     cancelButton.addEventListener('click', () => {
-      document.body.removeChild(dialogContainer);
-      resolve(null); // 使用模拟数据
+      closeDialog(null); // 使用模拟数据
     });
     
     saveButton.addEventListener('click', () => {
       const apiKey = input.value.trim();
       if (apiKey) {
-        saveApiKey(apiKey);
-        document.body.removeChild(dialogContainer);
-        resolve(apiKey);
+        const saved = saveApiKey(apiKey);
+        if (saved) {
+          closeDialog(apiKey);
+        } else {
+          alert('保存密钥失败，请重试');
+        }
       } else {
         alert('请输入有效的API密钥');
+      }
+    });
+    
+    // 关闭按钮事件
+    closeButton.addEventListener('click', () => {
+      closeDialog(null); // 默认使用模拟数据
+    });
+    
+    // 点击背景关闭对话框
+    dialogContainer.addEventListener('click', (e) => {
+      if (e.target === dialogContainer) {
+        closeDialog(null);
       }
     });
     
