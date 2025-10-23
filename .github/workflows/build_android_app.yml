@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build-android:
@@ -18,6 +20,18 @@ jobs:
         with:
           node-version: '20'
       
+      添加Node.js依赖缓存
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      # Step 1: Setup Java and Android SDK
       - name: Set up JDK 21 for Android SDK
         uses: actions/setup-java@v4
         with:
@@ -39,29 +53,10 @@ jobs:
       
       - name: Install dependencies
         run: npm install --legacy-peer-deps
-      - name: Create Capacitor config if not exists
-        run: |
-          if [ ! -f "capacitor.config.json" ]; then
-            echo "Creating capacitor.config.json..."
-            # Create the config file using echo commands instead of here-document
-            echo '{"appId":"com.llmnews.app","appName":"LLM News","webDir":"dist","bundledWebRuntime":false,"plugins":{"Haptics":{"enabled":true},"StatusBar":{"style":"DARK"}},"ios":{"supportsTablet":true},"android":{"adaptiveIcon":{"foregroundImage":"src/assets/adaptive-icon.png","backgroundColor":"#ffffff"}}}' > capacitor.config.json
-          fi
-          echo "Capacitor config exists: $(test -f "capacitor.config.json" && echo "yes" || echo "no")"
-          cat capacitor.config.json
       - name: Build web app before sync
         run: npm run build
-      - name: Initialize Capacitor if Android directory doesn't exist
-        run: |
-          if [ ! -d "android" ]; then
-            echo "Android directory doesn't exist, initializing Capacitor Android..."
-            npx cap add android
-          else
-            echo "Android directory already exists, skipping initialization"
-          fi
       - name: Sync Capacitor with Android
-        run: |
-          echo "Syncing Capacitor with Android..."
-          npx cap sync android --verbose
+        run: npx cap sync android
       - name: Build Android APK
         run: |
           cd android
@@ -70,9 +65,39 @@ jobs:
           export PATH=${JAVA_HOME}/bin:${PATH}
           ./gradlew assembleDebug \
             --stacktrace
+      - name: Create release directory
+        run: mkdir -p dist/release
+      - name: Copy APK to dist directory
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk dist/release/app-release.apk
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-debug-apk
+          name: android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+      - name: Upload web build from Android job
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build-android
+          path: dist
+  
+  android-deploy-page:
+    needs: build-android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build-android
+          path: .
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
