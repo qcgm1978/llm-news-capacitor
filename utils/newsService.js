@@ -13,16 +13,80 @@ try {
   NEWS_API_KEY = null;
 }
 
+// 服务提供商枚举
+const ServiceProvider = {
+  OPENAI: 'openai',
+  ANTHROPIC: 'anthropic',
+  GOOGLE: 'google',
+  META: 'meta',
+  MICROSOFT: 'microsoft',
+  BAIDU: 'baidu',
+  ALIBABA: 'alibaba',
+  XUNFEI: 'xunfei',
+  DEEPSEEK: 'deepseek',
+  GEMINI: 'gemini',
+  GROQ: 'groq',
+  DOUBAO: 'doubao',
+  OPENROUTER: 'openrouter',
+  MOONSHOT: 'moonshot',
+  IFLOW: 'iflow'
+};
+
+// 获取服务商官方URL
+const getProviderOfficialUrl = (provider) => {
+  switch (provider) {
+    case ServiceProvider.XUNFEI:
+      return 'https://console.xfyun.cn/app/myapp';
+    case ServiceProvider.DEEPSEEK:
+      return 'https://platform.deepseek.com/';
+    case ServiceProvider.GEMINI:
+      return 'https://makersuite.google.com/app/apikey';
+    case ServiceProvider.GROQ:
+      return 'https://console.groq.com/keys';
+    case ServiceProvider.OPENAI:
+      return 'https://platform.openai.com/api-keys';
+    case ServiceProvider.DOUBAO:
+      return 'https://console.volcengine.com/vei/aigateway/overview?region=cn-beijing';
+    case ServiceProvider.OPENROUTER:
+      return 'https://openrouter.ai/settings/keys';
+    case ServiceProvider.MOONSHOT:
+      return 'https://platform.moonshot.cn/console/api-keys';
+    case ServiceProvider.IFLOW:
+      return 'https://platform.iflow.cn/profile?tab=apiKey';
+    // 为现有公司添加官方URL
+    case ServiceProvider.ANTHROPIC:
+      return 'https://console.anthropic.com/';
+    case ServiceProvider.GOOGLE:
+      return 'https://console.cloud.google.com/';
+    case ServiceProvider.META:
+      return 'https://developers.facebook.com/';
+    case ServiceProvider.MICROSOFT:
+      return 'https://portal.azure.com/';
+    case ServiceProvider.BAIDU:
+      return 'https://ai.baidu.com/tech/';
+    case ServiceProvider.ALIBABA:
+      return 'https://dashscope.aliyun.com/';
+    default:
+      return '#';
+  }
+};
+
 // LLM公司列表
 const llmCompanies = [
-  { id: 'openai', name: 'OpenAI', color: '#10a37f', keywords: 'OpenAI GPT ChatGPT' },
-  { id: 'anthropic', name: 'Anthropic', color: '#FF5700', keywords: 'Anthropic Claude AI' },
-  { id: 'google', name: 'Google DeepMind', color: '#4285F4', keywords: 'Google DeepMind Gemini AI' },
-  { id: 'meta', name: 'Meta AI', color: '#1877F2', keywords: 'Meta AI Llama Facebook' },
-  { id: 'microsoft', name: 'Microsoft', color: '#0078D4', keywords: 'Microsoft Copilot Azure OpenAI' },
-  { id: 'baidu', name: '百度', color: '#3B82F6', keywords: '百度 文心一言ERNIE' },
-  { id: 'alibaba', name: '阿里巴巴', color: '#FF6A00', keywords: '阿里巴巴 通义千问' },
+  { id: 'openai', name: 'OpenAI', color: '#10a37f', keywords: 'OpenAI GPT ChatGPT', officialUrl: getProviderOfficialUrl(ServiceProvider.OPENAI) },
+  { id: 'anthropic', name: 'Anthropic', color: '#FF5700', keywords: 'Anthropic Claude AI', officialUrl: getProviderOfficialUrl(ServiceProvider.ANTHROPIC) },
+  { id: 'google', name: 'Google DeepMind', color: '#4285F4', keywords: 'Google DeepMind Gemini AI', officialUrl: getProviderOfficialUrl(ServiceProvider.GOOGLE) },
+  { id: 'meta', name: 'Meta AI', color: '#1877F2', keywords: 'Meta AI Llama Facebook', officialUrl: getProviderOfficialUrl(ServiceProvider.META) },
+  { id: 'microsoft', name: 'Microsoft', color: '#0078D4', keywords: 'Microsoft Copilot Azure OpenAI', officialUrl: getProviderOfficialUrl(ServiceProvider.MICROSOFT) },
+  { id: 'baidu', name: '百度', color: '#3B82F6', keywords: '百度 文心一言ERNIE', officialUrl: getProviderOfficialUrl(ServiceProvider.BAIDU) },
+  { id: 'alibaba', name: '阿里巴巴', color: '#FF6A00', keywords: '阿里巴巴 通义千问', officialUrl: getProviderOfficialUrl(ServiceProvider.ALIBABA) },
 ];
+
+// 新闻来源类型
+export const NewsSourceType = {
+  API: 'api',          // 使用NewsAPI获取新闻
+  OFFICIAL: 'official' // 使用官方来源
+};
 
 // 配置新闻API
 // NEWS_API_KEY 已经在文件顶部定义
@@ -288,12 +352,29 @@ export const showApiKeyDialog = () => {
 };
 
 // 根据公司获取新闻
-export const getNewsByCompany = async (companyId) => {
+export const getNewsByCompany = async (companyId, sourceType = NewsSourceType.API) => {
   const company = llmCompanies.find(c => c.id === companyId);
   if (!company) {
     return Promise.resolve([]);
   }
   
+  // 如果选择官方来源，返回包含官方URL的新闻条目
+  if (sourceType === NewsSourceType.OFFICIAL) {
+    return Promise.resolve([{
+      id: `${company.id}-official-source`,
+      title: `${company.name}官方新闻`,
+      content: `访问${company.name}官方网站获取最新、最准确的新闻和更新。`,
+      date: new Date().toISOString().split('T')[0],
+      image: null,
+      url: company.officialUrl,
+      source: '官方来源',
+      companyName: company.name,
+      companyColor: company.color,
+      isOfficialSource: true
+    }]);
+  }
+  
+  // 使用API来源（原有逻辑）
   // 检查是否有API Key，如果没有则显示对话框
   if (!NEWS_API_KEY) {
     const apiKey = await showApiKeyDialog();
@@ -319,7 +400,25 @@ export const getNewsByCompany = async (companyId) => {
 };
 
 // 获取所有公司的新闻
-export const getAllNews = async () => {
+export const getAllNews = async (sourceType = NewsSourceType.API) => {
+  // 如果选择官方来源，返回所有公司的官方来源新闻
+  if (sourceType === NewsSourceType.OFFICIAL) {
+    const officialNews = llmCompanies.map(company => ({
+      id: `${company.id}-official-source`,
+      title: `${company.name}官方新闻`,
+      content: `访问${company.name}官方网站获取最新、最准确的新闻和更新。`,
+      date: new Date().toISOString().split('T')[0],
+      image: null,
+      url: company.officialUrl,
+      source: '官方来源',
+      companyName: company.name,
+      companyColor: company.color,
+      isOfficialSource: true
+    }));
+    return Promise.resolve(officialNews);
+  }
+  
+  // 使用API来源（原有逻辑）
   // 检查是否有API Key，如果没有则显示对话框
   if (!NEWS_API_KEY) {
     const apiKey = await showApiKeyDialog();
@@ -333,7 +432,7 @@ export const getAllNews = async () => {
   
   // 并发请求所有公司的新闻
   const allRequests = llmCompanies.map(company => 
-    getNewsByCompany(company.id)
+    getNewsByCompany(company.id, sourceType)
   );
 
   return Promise.all(allRequests)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getLLMCompanies, getAllNews, getNewsByCompany } from '../utils/newsService';
+import { getLLMCompanies, getAllNews, getNewsByCompany, NewsSourceType } from '../utils/newsService';
 import { Capacitor, Plugins } from '@capacitor/core';
 import './App.css';
 
@@ -14,16 +14,17 @@ function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
+  const [selectedNewsSource, setSelectedNewsSource] = useState(NewsSourceType.API);
 
   // 加载公司列表
   useEffect(() => {
     loadCompanies();
   }, []);
 
-  // 当选中公司变化时，加载相应的新闻
+  // 当选中公司或新闻来源变化时，加载相应的新闻
   useEffect(() => {
     loadNews();
-  }, [selectedCompany]);
+  }, [selectedCompany, selectedNewsSource]);
 
   const loadCompanies = async () => {
     try {
@@ -40,9 +41,9 @@ function App() {
     try {
       let newsData;
       if (selectedCompany === 'all') {
-        newsData = await getAllNews();
+        newsData = await getAllNews(selectedNewsSource);
       } else {
-        newsData = await getNewsByCompany(selectedCompany);
+        newsData = await getNewsByCompany(selectedCompany, selectedNewsSource);
       }
       setNews(newsData);
     } catch (err) {
@@ -52,6 +53,16 @@ function App() {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  const handleNewsSourceChange = (sourceType) => {
+    setSelectedNewsSource(sourceType);
+    // 触觉反馈
+    if (Capacitor.isPluginAvailable('Haptics')) {
+      Haptics.selection();
+    }
+    // 重新加载新闻数据
+    loadNews();
   };
 
   const handleRefresh = () => {
@@ -163,6 +174,25 @@ function App() {
     );
   };
 
+  const renderNewsSourceSelector = () => {
+    return (
+      <div className="news-source-selector">
+        <div 
+          className={`source-option ${selectedNewsSource === NewsSourceType.API ? 'active' : ''}`}
+          onClick={() => handleNewsSourceChange(NewsSourceType.API)}
+        >
+          API来源
+        </div>
+        <div 
+          className={`source-option ${selectedNewsSource === NewsSourceType.OFFICIAL ? 'active' : ''}`}
+          onClick={() => handleNewsSourceChange(NewsSourceType.OFFICIAL)}
+        >
+          官方来源
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -172,6 +202,7 @@ function App() {
         </div>
       </header>
       
+      {renderNewsSourceSelector()}
       {renderCompanyTabs()}
       
       <div 
