@@ -44,7 +44,7 @@ const getProviderOfficialUrl = (provider) => {
     case ServiceProvider.GROQ:
       return 'https://console.groq.com/keys';
     case ServiceProvider.OPENAI:
-      return 'https://platform.openai.com/api-keys';
+      return 'https://openai.com/zh-Hans-CN/news/';
     case ServiceProvider.DOUBAO:
       return 'https://console.volcengine.com/vei/aigateway/overview?region=cn-beijing';
     case ServiceProvider.OPENROUTER:

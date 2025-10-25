@@ -65,3 +65,5 @@ capacitor.config.ts
 
 # Utils config
 utils/config.js
+
+server.js
